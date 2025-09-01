@@ -425,7 +425,7 @@ const Students = () => {
               </View>
             )}
           </View>
-          <Text style={styles.studentClass}>Class: {studentClass}, Year: {admission_year}</Text>
+          <Text style={styles.studentClass}>{studentClass}, Year: {admission_year}</Text>
           <View style={styles.studentDetails}>
             <View style={styles.mobileContainer}>
               <Icon name="phone" size={12} color="#6b7280" />
