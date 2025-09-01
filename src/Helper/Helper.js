@@ -161,6 +161,6 @@ export const showToast = (message) => {
     if (Platform.OS === 'android') {
         ToastAndroid.show(message, ToastAndroid.SHORT)
     } else {
-        console.log('Toast:', message)
+        // console.log('Toast:', message)
     }
 }

@@ -314,6 +314,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#d1d5db",
     borderRadius: 10,
+    shadowColor: "#ffffffff",
     padding: 12,
     marginBottom: 8,
     ...Platform.select({

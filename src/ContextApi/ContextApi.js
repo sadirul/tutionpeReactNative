@@ -5,8 +5,8 @@ import { API_URL, SHOW_ALL_REQUEST_URL } from '@env'
 
 export const useHttpRequest = () => {
     const dispatch = useDispatch()
-    
-    
+
+
     const httpRequest = async (url, { method = 'GET', data = null, headers = {} } = {}) => {
         try {
             console.log('API_URL', API_URL);
@@ -28,8 +28,7 @@ export const useHttpRequest = () => {
             }
 
             const requestURL = `${API_URL}${url}`
-            console.log(requestURL)
-            if (SHOW_ALL_REQUEST_URL === 'true') {
+            if (SHOW_ALL_REQUEST_URL == 'true') {
                 console.log(requestURL)
             }
 
@@ -50,11 +49,10 @@ export const useHttpRequest = () => {
 
             return result
         } catch (error) {
-            console.log('Error:', error, url)
             return {
                 status: 'error',
-                msg: 'error',
-            }
+                msg: error.message || 'An unexpected error occurred',
+            };
         }
     }
 

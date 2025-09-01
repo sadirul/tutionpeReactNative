@@ -105,7 +105,6 @@ const Plan = () => {
 
         })
         .catch((error) => {
-          console.log(error)
           showToast('Payment cancelled')
         })
         .finally(() => {
@@ -114,7 +113,6 @@ const Plan = () => {
         })
 
     } catch (err) {
-      console.error(err)
       showToast('Subscription failed')
       setPaymentLoading(false)
       setPaymentStep('')

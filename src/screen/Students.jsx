@@ -14,8 +14,8 @@ import {
   Platform,
   Dimensions,
   RefreshControl,
+  BackHandler
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BottomNavigation } from './navigation/BottomNavigation';
@@ -77,11 +77,28 @@ const Students = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [visible, setVisible] = useState(false)
 
+
+  // Handle hardware back button press
+  useEffect(() => {
+    const backAction = () => {
+      if (selectionMode) {
+        clearSelection();
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [selectionMode, clearSelection]);
+
+
   // Filters
   const [filters, setFilters] = useState({
     name: params.get('name') || '',
     mobile: params.get('mobile') || '',
-    class: params.get('class') || '',
+    class: params.get('class') || route.params.className || '',
     feeStatus: params.get('feeStatus') || route.params.feeStatus || '',
     status: params.get('status') || route.params.status || 'active',
   });
