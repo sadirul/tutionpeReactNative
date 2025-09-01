@@ -116,6 +116,7 @@ const LoginScreen = () => {
                             value={value}
                             onChangeText={onChange}
                             placeholderTextColor="#999"
+                            autoCapitalize="none"
                         />
                     )}
                 />

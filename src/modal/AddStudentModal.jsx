@@ -153,7 +153,7 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
 
                 <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
                     {/* Name */}
-                    <Text style={styles.label}>Student Name</Text>
+                    <Text style={styles.label}>Student Name <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Enter full name"
@@ -163,7 +163,7 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
                     />
                     {errors.name && <Text style={styles.error}>{errors.name}</Text>}
 
-                    <Text style={styles.label}>Class</Text>
+                    <Text style={styles.label}>Class <Text style={styles.asteriskMark}>*</Text></Text>
                     <View style={{ marginHorizontal: 16 }}>
                         <ClassDropdown
                             label="Select Class"
@@ -175,7 +175,7 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
                         />
                     </View>
 
-                    <Text style={styles.label}>Gender</Text>
+                    <Text style={styles.label}>Gender <Text style={styles.asteriskMark}>*</Text></Text>
                     <View style={{ marginHorizontal: 16 }}>
                         <GenderDropdown
                             label="Select Gender"
@@ -187,7 +187,7 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
                     </View>
 
                     {/* Other Inputs */}
-                    <Text style={styles.label}>Monthly Fees</Text>
+                    <Text style={styles.label}>Monthly Fees <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Enter monthly fees"
@@ -197,7 +197,7 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
                     />
                     {errors.monthlyFees && <Text style={styles.error}>{errors.monthlyFees}</Text>}
 
-                    <Text style={styles.label}>Mobile</Text>
+                    <Text style={styles.label}>Mobile <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={styles.input}
                         placeholder="9876543210"
@@ -220,7 +220,7 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
                     {errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
                     {/* Address */}
-                    <Text style={styles.label}>Address</Text>
+                    <Text style={styles.label}>Address <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={[styles.input, { height: 80, textAlignVertical: "top" }]}
                         placeholder="Enter address"
@@ -232,7 +232,7 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
                     {errors.address && <Text style={styles.error}>{errors.address}</Text>}
 
                     {/* Guardian Name */}
-                    <Text style={styles.label}>Guardian Name</Text>
+                    <Text style={styles.label}>Guardian Name <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Enter guardian's full name"
@@ -243,7 +243,7 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
                     {errors.guardianName && <Text style={styles.error}>{errors.guardianName}</Text>}
 
                     {/* Guardian Mobile */}
-                    <Text style={styles.label}>Guardian Mobile</Text>
+                    <Text style={styles.label}>Guardian Mobile <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Enter guardian mobile number"
@@ -300,4 +300,5 @@ const styles = StyleSheet.create({
     dropdownCloseBtn: { padding: 4, borderRadius: 6, backgroundColor: "#e9ecef" },
     dropdownItem: { padding: 15, borderBottomWidth: 1, borderBottomColor: "#f1f3f4" },
     dropdownItemText: { fontSize: 15, color: "#333" },
+    asteriskMark: { color: 'red' }
 })

@@ -6,20 +6,19 @@ import {
     TouchableOpacity,
     ScrollView,
     StyleSheet,
-    ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
-    SafeAreaView,
 } from 'react-native'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as Yup from 'yup'
 import { useNavigation } from '@react-navigation/native'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import { Eye, EyeOff, ChevronRight, School, User, Mail, Phone, MapPin, Lock } from 'lucide-react-native'
-import LinearGradient from 'react-native-linear-gradient'
+import { Eye, EyeOff, School, User, Mail, Phone, MapPin, Lock } from 'lucide-react-native'
 import { useHttpRequest } from '../ContextApi/ContextApi'
 import GradientButton from '../component/GradientButton'
+import { showToast } from '../Helper/Helper'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 // Validation schema
 const validationSchema = Yup.object().shape({
@@ -63,6 +62,7 @@ const Signup = () => {
                 },
             })
             if (response.status === 'success') {
+                showToast(response.msg || 'Registration successful! Please login.')
                 navigation.navigate('Login')
             } else {
                 setSignupError(response.msg || 'Registration failed')
@@ -74,8 +74,38 @@ const Signup = () => {
         setIsSubmitting(false)
     }
 
+    const renderInput = (icon, placeholder, fieldName, secure = false, showToggle = false, showState = null, setShowState = null, keyboardType = 'default') => (
+        <>
+            <View style={styles.inputContainer}>
+                {icon}
+                <Controller
+                    control={control}
+                    name={fieldName}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <TextInput
+                            style={[styles.input, showToggle ? { paddingRight: 40 } : {}]}
+                            placeholder={placeholder}
+                            value={value}
+                            onChangeText={onChange}
+                            onBlur={onBlur}
+                            placeholderTextColor="#999"
+                            secureTextEntry={secure && !showState}
+                            keyboardType={keyboardType}
+                        />
+                    )}
+                />
+                {showToggle && (
+                    <TouchableOpacity activeOpacity={0.7} onPress={() => setShowState(!showState)} style={styles.eyeIcon}>
+                        {showState ? <EyeOff size={24} color="#666" /> : <Eye size={24} color="#666" />}
+                    </TouchableOpacity>
+                )}
+            </View>
+            {errors[fieldName] && <Text style={styles.errorText}>{errors[fieldName].message}</Text>}
+        </>
+    )
+
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView edges={['bottom']} style={styles.container}>
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -101,176 +131,14 @@ const Signup = () => {
 
                     {/* Form Fields */}
                     <View style={styles.form}>
-                        {/** Tuition Name */}
-                        <Controller
-                            control={control}
-                            name="tuition_name"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputWrapper}>
-                                    <School size={18} color="#888" style={styles.icon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Tuition Name"
-                                        value={value}
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        placeholderTextColor="#999"
-                                    />
-                                </View>
-                            )}
-                        />
-                        {errors.tuition_name && <Text style={styles.errorText}>{errors.tuition_name.message}</Text>}
-
-                        {/** Admin Name */}
-                        <Controller
-                            control={control}
-                            name="admin_name"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputWrapper}>
-                                    <User size={18} color="#888" style={styles.icon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Your Name"
-                                        value={value}
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        placeholderTextColor="#999"
-                                    />
-                                </View>
-                            )}
-                        />
-                        {errors.admin_name && <Text style={styles.errorText}>{errors.admin_name.message}</Text>}
-
-                        {/** Username */}
-                        <Controller
-                            control={control}
-                            name="username"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputWrapper}>
-                                    <User size={18} color="#888" style={styles.icon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Username"
-                                        value={value}
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        placeholderTextColor="#999"
-                                    />
-                                </View>
-                            )}
-                        />
-                        {errors.username && <Text style={styles.errorText}>{errors.username.message}</Text>}
-
-                        {/** Email */}
-                        <Controller
-                            control={control}
-                            name="email"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputWrapper}>
-                                    <Mail size={18} color="#888" style={styles.icon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Email"
-                                        value={value}
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        keyboardType="email-address"
-                                        autoCapitalize="none"
-                                        placeholderTextColor="#999"
-                                    />
-                                </View>
-                            )}
-                        />
-                        {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
-
-                        {/** Mobile */}
-                        <Controller
-                            control={control}
-                            name="mobile"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputWrapper}>
-                                    <Phone size={18} color="#888" style={styles.icon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Mobile Number"
-                                        value={value}
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        keyboardType="phone-pad"
-                                        placeholderTextColor="#999"
-                                    />
-                                </View>
-                            )}
-                        />
-                        {errors.mobile && <Text style={styles.errorText}>{errors.mobile.message}</Text>}
-
-                        {/** Address */}
-                        <Controller
-                            control={control}
-                            name="address"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputWrapper}>
-                                    <MapPin size={18} color="#888" style={styles.icon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Address"
-                                        value={value}
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        placeholderTextColor="#999"
-                                    />
-                                </View>
-                            )}
-                        />
-                        {errors.address && <Text style={styles.errorText}>{errors.address.message}</Text>}
-
-                        {/** Password */}
-                        <Controller
-                            control={control}
-                            name="password"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputWrapper}>
-                                    <Lock size={18} color="#888" style={styles.icon} />
-                                    <TextInput
-                                        style={[styles.input, { paddingRight: 40 }]}
-                                        placeholder="Password"
-                                        value={value}
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        secureTextEntry={!showPassword}
-                                        placeholderTextColor="#999"
-                                    />
-                                    <TouchableOpacity activeOpacity={0.7} onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-                                        {showPassword ? <EyeOff size={18} color="#888" /> : <Eye size={18} color="#888" />}
-                                    </TouchableOpacity>
-                                </View>
-                            )}
-                        />
-                        {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
-
-                        {/** Confirm Password */}
-                        <Controller
-                            control={control}
-                            name="confirm_password"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputWrapper}>
-                                    <Lock size={18} color="#888" style={styles.icon} />
-                                    <TextInput
-                                        style={[styles.input, { paddingRight: 40 }]}
-                                        placeholder="Confirm Password"
-                                        value={value}
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        secureTextEntry={!showConfirmPassword}
-                                        placeholderTextColor="#999"
-                                    />
-                                    <TouchableOpacity activeOpacity={0.7} onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeBtn}>
-                                        {showConfirmPassword ? <EyeOff size={18} color="#888" /> : <Eye size={18} color="#888" />}
-                                    </TouchableOpacity>
-                                </View>
-                            )}
-                        />
-                        {errors.confirm_password && <Text style={styles.errorText}>{errors.confirm_password.message}</Text>}
+                        {renderInput(<School size={24} color="#666" style={styles.icon} />, 'Tuition Name', 'tuition_name')}
+                        {renderInput(<User size={24} color="#666" style={styles.icon} />, 'Your Name', 'admin_name')}
+                        {renderInput(<User size={24} color="#666" style={styles.icon} />, 'Username', 'username')}
+                        {renderInput(<Mail size={24} color="#666" style={styles.icon} />, 'Email', 'email', false, false, null, null, 'email-address')}
+                        {renderInput(<Phone size={24} color="#666" style={styles.icon} />, 'Mobile Number', 'mobile', false, false, null, null, 'phone-pad')}
+                        {renderInput(<MapPin size={24} color="#666" style={styles.icon} />, 'Address', 'address')}
+                        {renderInput(<Lock size={24} color="#666" style={styles.icon} />, 'Password', 'password', true, true, showPassword, setShowPassword)}
+                        {renderInput(<Lock size={24} color="#666" style={styles.icon} />, 'Confirm Password', 'confirm_password', true, true, showConfirmPassword, setShowConfirmPassword)}
 
                         {/* Submit Button */}
                         <GradientButton
@@ -307,7 +175,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         marginBottom: 20,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 5 },
         shadowOpacity: 0.3,
         shadowRadius: 6,
         elevation: 8,
@@ -315,27 +183,40 @@ const styles = StyleSheet.create({
     },
     heading: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 4, color: '#111' },
     subHeading: { fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 20 },
-    errorBox: { backgroundColor: '#fee2e2', padding: 12, borderRadius: 8, marginBottom: 15 },
-    errorText: { color: '#dc2626', fontSize: 14 },
+    errorBox: {
+        backgroundColor: '#fee2e2',
+        borderLeftWidth: 4,
+        borderColor: '#dc2626',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 15,
+        width: '100%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    errorText: { color: '#dc2626', fontSize: 14, marginBottom: 5 },
     form: { paddingVertical: 10 },
-    inputWrapper: {
+    inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 10,
+        borderRadius: 12,
         marginBottom: 15,
-        paddingHorizontal: 12,
+        paddingHorizontal: 15,
         height: 50,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     icon: { marginRight: 10 },
-    input: { flex: 1, fontSize: 14, color: '#111' },
-    eyeBtn: { padding: 5 },
-    submitBtn: { padding: 15, borderRadius: 12, alignItems: 'center', marginBottom: 20 },
-    submitBtnContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-    submitText: { color: '#fff', fontSize: 16, fontWeight: '600', marginRight: 6 },
-    loginContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
+    input: { flex: 1, color: '#333', fontSize: 14 },
+    eyeIcon: { padding: 5 },
+    loginContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
     loginPrompt: { color: '#666', fontSize: 14 },
     loginLink: { color: '#2575fc', fontSize: 14, fontWeight: '600', marginLeft: 4 },
 })

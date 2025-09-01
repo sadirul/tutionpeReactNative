@@ -159,7 +159,7 @@ const EditStudentModal = ({
                     <Text style={styles.sectionTitle}>Basic Information</Text>
 
                     {/* Name */}
-                    <Text style={styles.label}>Student Name</Text>
+                    <Text style={styles.label}>Student Name <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Enter full name"
@@ -170,7 +170,7 @@ const EditStudentModal = ({
                     {errors.name && <Text style={styles.error}>{errors.name}</Text>}
 
                     {/* Class Dropdown */}
-                    <Text style={styles.label}>Class</Text>
+                    <Text style={styles.label}>Class <Text style={styles.asteriskMark}>*</Text></Text>
                     <View style={{ marginHorizontal: 16 }}>
 
                         <ClassDropdown
@@ -185,7 +185,7 @@ const EditStudentModal = ({
 
 
                     {/* Gender Dropdown */}
-                    <Text style={styles.label}>Gender</Text>
+                    <Text style={styles.label}>Gender <Text style={styles.asteriskMark}>*</Text></Text>
                     <View style={{ marginHorizontal: 16 }}>
                         <GenderDropdown
                             label="Select Gender"
@@ -197,7 +197,7 @@ const EditStudentModal = ({
                     </View>
                     
                     {/* Monthly Fees */}
-                    <Text style={styles.label}>Monthly Fees</Text>
+                    <Text style={styles.label}>Monthly Fees <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Enter monthly fees"
@@ -213,7 +213,7 @@ const EditStudentModal = ({
                     <Text style={styles.sectionTitle}>Contact Details</Text>
 
                     {/* Mobile */}
-                    <Text style={styles.label}>Mobile Number</Text>
+                    <Text style={styles.label}>Mobile Number <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={styles.input}
                         placeholder="9876543210"
@@ -240,7 +240,7 @@ const EditStudentModal = ({
                     {errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
                     {/* Address */}
-                    <Text style={styles.label}>Address</Text>
+                    <Text style={styles.label}>Address <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
                         placeholder="Enter complete address"
@@ -251,10 +251,10 @@ const EditStudentModal = ({
                     />
                     {errors.address && <Text style={styles.error}>{errors.address}</Text>}
 
-                    <Text style={styles.sectionTitle}>Guardian Details</Text>
+                    <Text style={styles.sectionTitle}>Guardian Details </Text>
 
                     {/* Guardian Name */}
-                    <Text style={styles.label}>Guardian Name</Text>
+                    <Text style={styles.label}>Guardian Name <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Enter guardian's name"
@@ -265,7 +265,7 @@ const EditStudentModal = ({
                     {errors.guardianName && <Text style={styles.error}>{errors.guardianName}</Text>}
 
                     {/* Guardian Mobile */}
-                    <Text style={styles.label}>Guardian Mobile</Text>
+                    <Text style={styles.label}>Guardian Mobile <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
                         style={styles.input}
                         placeholder="9876543210"
@@ -445,6 +445,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: '#333',
     },
+    asteriskMark: { color: 'red' }
 });
 
 export default EditStudentModal;
