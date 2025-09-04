@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   View, Text, TouchableOpacity, StyleSheet, Linking, ScrollView,
-  ToastAndroid, RefreshControl
+  ToastAndroid, RefreshControl,
+  BackHandler
 } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useSelector } from 'react-redux'
 import { useHttpRequest } from '../ContextApi/ContextApi'
 
@@ -13,6 +14,7 @@ import DashboardStatCard from '../component/DashboardStatCard'
 import LinearGradient from 'react-native-linear-gradient'
 import Loader from '../component/Loader'
 import { BottomNavigation } from './navigation/BottomNavigation'
+import { showToast } from '../Helper/Helper'
 
 const Dashboard = () => {
   const navigation = useNavigation()
@@ -31,6 +33,36 @@ const Dashboard = () => {
     fees_paid_this_month: 0,
   })
 
+  // ✅ back press logic
+  const [backPressedOnce, setBackPressedOnce] = useState(false)
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (backPressedOnce) {
+          BackHandler.exitApp()
+          return true
+        }
+
+        setBackPressedOnce(true)
+        showToast('Press back again to exit')
+
+        setTimeout(() => {
+          setBackPressedOnce(false)
+        }, 1500)
+
+        return true
+      }
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress
+      )
+
+      return () => subscription.remove()
+    }, [backPressedOnce])
+  )
+
+
   // 📌 get previous month dynamically
   const getPreviousMonth = () => {
     const now = new Date()
@@ -45,13 +77,13 @@ const Dashboard = () => {
         const response = await httpRequest('/generate-fees', 'GET')
         if (response?.status === 'success') {
           await fetchDashboard()
-          ToastAndroid.show(response?.msg || 'Fees generated successfully!', ToastAndroid.SHORT)
+          showToast(response?.msg || 'Fees generated successfully!')
         } else {
-          ToastAndroid.show(response?.msg || 'Failed to generate fees', ToastAndroid.SHORT)
+          showToast(response?.msg || 'Failed to generate fees')
         }
       } catch (err) {
         console.error(err)
-        ToastAndroid.show('Something went wrong while generating fees', ToastAndroid.SHORT)
+        showToast('Something went wrong while generating fees')
       }
       setGeneratingFees(false)
     } else if (path === 'Students') {
@@ -84,11 +116,11 @@ const Dashboard = () => {
           fees_paid_this_month: d.fees_paid_this_month ?? 0,
         })
       } else {
-        ToastAndroid.show(response?.msg || 'Failed to fetch dashboard', ToastAndroid.SHORT)
+        showToast(response?.msg || 'Failed to fetch dashboard')
       }
     } catch (err) {
       console.error(err)
-      ToastAndroid.show('Something went wrong while fetching dashboard', ToastAndroid.SHORT)
+      showToast('Something went wrong while fetching dashboard')
     }
     setLoading(false)
   }
