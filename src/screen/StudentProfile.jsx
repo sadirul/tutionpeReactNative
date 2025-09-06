@@ -22,6 +22,7 @@ import {
     AlertTriangle,
     UserPlus,
     FileText,
+    Plus
 } from 'lucide-react-native';
 import { showToast, ucFirst } from '../Helper/Helper';
 import { useHttpRequest } from '../ContextApi/ContextApi';
@@ -29,6 +30,7 @@ import { Header } from '../Components/Header';
 import { BottomNavigation } from './navigation/BottomNavigation';
 import EditStudentModal from '../modal/EditStudentModal';
 import { useNavigation } from '@react-navigation/native';
+import AddFeesModal from '../modal/AddFeesModal';
 
 // Skeleton Loader Components
 const SkeletonLoader = ({ style, children }) => (
@@ -155,6 +157,7 @@ const StudentProfile = ({ route }) => {
     const [classes, setClasses] = useState([]);
     const didFetch = useRef(false);
     const navigation = useNavigation();
+    const [isAddFeesModalOpen, setIsAddFeesModalOpen] = useState(false);
 
     // Fetch student data
     const fetchStudentData = useCallback(async () => {
@@ -267,6 +270,55 @@ const StudentProfile = ({ route }) => {
             setShowConfirmationModal(true);
         },
         [feeStatus]
+    );
+    const openAddFeesModal = useCallback(() => {
+        setIsAddFeesModalOpen(true);
+    }, []);
+
+    const closeAddFeesModal = useCallback(() => {
+        setIsAddFeesModalOpen(false);
+    }, []);
+    // Add fee functionality
+    const handleAddFee = useCallback(
+        async (feeData) => {
+            try {
+                const response = await httpRequest(`/add-fees/${studentId}`, {
+                    method: 'POST',
+                    data: {
+                        year_month: feeData.year_month,
+                        is_paid: feeData.is_paid,
+                        amount: studentData.monthlyFees || 0,
+                    },
+                });
+
+                if (response?.status === 'success' && response?.data) {
+                    const newFee = response.data;
+                    if (!newFee.uuid || !newFee.year_month) {
+                        throw new Error('Invalid fee data returned from server');
+                    }
+
+                    setFeeStatus((prev) => ({
+                        ...prev,
+                        [newFee.year_month]: {
+                            id: newFee.id,
+                            uuid: newFee.uuid,
+                            paid: Boolean(newFee.is_paid),
+                            amount: parseFloat(newFee.monthly_fees || studentData.monthlyFees || 0),
+                        },
+                    }));
+                    showToast(`Fee for ${newFee.year_month} added successfully`, 'success');
+                    setIsAddFeesModalOpen(false);
+                } else {
+                    const errorMsg = response?.msg || 'Failed to add fee';
+                    showToast(errorMsg, 'error');
+                }
+            } catch (error) {
+                console.error('Add Fee Error:', error);
+                const errorMsg = error?.response?.data?.msg || error?.message || 'Something went wrong while adding fee';
+                showToast(errorMsg, 'error');
+            }
+        },
+        [studentId, studentData?.monthlyFees]
     );
 
     const confirmMarkAsPaid = async () => {
@@ -564,15 +616,25 @@ const StudentProfile = ({ route }) => {
                         {/* Fee Status */}
                         <View style={styles.infoCard}>
                             <View style={styles.cardHeader}>
-                                <Text style={styles.cardTitle}>Fee Status</Text>
-                                {unpaidCount > 0 && (
-                                    <View style={styles.statusIndicator}>
-                                        <View style={styles.pendingBadge}>
-                                            <Text style={styles.pendingCount}>{unpaidCount}</Text>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flex: 1 }}>
+                                    <Text style={styles.cardTitle}>Fee Status</Text>
+                                    {unpaidCount > 0 && (
+                                        <View style={styles.statusIndicator}>
+                                            <View style={styles.pendingBadge}>
+                                                <Text style={styles.pendingCount}>{unpaidCount}</Text>
+                                            </View>
+                                            <Text style={styles.pendingText}>Pending</Text>
                                         </View>
-                                        <Text style={styles.pendingText}>Pending</Text>
-                                    </View>
-                                )}
+                                    )}
+                                    <TouchableOpacity
+                                        activeOpacity={0.7}
+                                        onPress={openAddFeesModal}
+                                        style={styles.addFeeButton}
+                                    >
+                                        <Plus size={20} color="#3B82F6" />
+                                        <Text style={styles.addFeeButtonText}>Add Fee</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                             {Object.keys(feeStatus).length > 0 ? (
                                 <>
@@ -796,6 +858,15 @@ const StudentProfile = ({ route }) => {
                     classes={classes}
                 />
             )}
+
+            {isAddFeesModalOpen && (
+                <AddFeesModal
+                    isOpen={isAddFeesModalOpen}
+                    closeModal={closeAddFeesModal}
+                    handleAddFee={handleAddFee}
+                    studentId={studentId}
+                />
+            )}
         </SafeAreaView>
     );
 };
@@ -988,6 +1059,19 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: '#1F2937',
+    },
+    addFeeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        backgroundColor: '#DBEAFE',
+        borderRadius: 20,
+    },
+    addFeeButtonText: {
+        marginLeft: 4,
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#3B82F6',
     },
     infoRow: {
         flexDirection: 'row',
