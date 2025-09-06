@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import {
   View, Text, TouchableOpacity, StyleSheet, Linking, ScrollView,
-  ToastAndroid, RefreshControl,
+  RefreshControl,
   BackHandler
 } from 'react-native'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
@@ -15,6 +15,7 @@ import LinearGradient from 'react-native-linear-gradient'
 import Loader from '../component/Loader'
 import { BottomNavigation } from './navigation/BottomNavigation'
 import { showToast } from '../Helper/Helper'
+import FeesGenerateModal from '../modal/FeesGenerateModal'
 
 const Dashboard = () => {
   const navigation = useNavigation()
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const user = useSelector((state) => state.auth.user)
 
   const [loading, setLoading] = useState(false)
+  const [showFeeModal, setShowFeeModal] = useState(false);
   const [generatingFees, setGeneratingFees] = useState(false)
   const [refreshing, setRefreshing] = useState(false)   // <-- for pull to refresh
   const [stats, setStats] = useState({
@@ -72,20 +74,7 @@ const Dashboard = () => {
 
   const handleCardClick = async (path) => {
     if (path === 'generateFees') {
-      setGeneratingFees(true)
-      try {
-        const response = await httpRequest('/generate-fees', 'GET')
-        if (response?.status === 'success') {
-          await fetchDashboard()
-          showToast(response?.msg || 'Fees generated successfully!')
-        } else {
-          showToast(response?.msg || 'Failed to generate fees')
-        }
-      } catch (err) {
-        console.error(err)
-        showToast('Something went wrong while generating fees')
-      }
-      setGeneratingFees(false)
+      setShowFeeModal(true);
     } else if (path === 'Students') {
       // Active students
       navigation.navigate('Students', { status: 'active' })
@@ -137,10 +126,6 @@ const Dashboard = () => {
 
   return (
     <View style={styles.container}>
-
-      {/* Loading Overlay while generating fees */}
-      <Loader visible={generatingFees} text="Generating Fees..." />
-
       <Header title="Dashboard" />
 
       <ScrollView
@@ -263,7 +248,11 @@ const Dashboard = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-
+      <FeesGenerateModal
+        showFeeModal={showFeeModal}
+        setShowFeeModal={setShowFeeModal}
+        fetchDashboard={fetchDashboard}
+      />
       <BottomNavigation />
     </View>
   )
