@@ -11,27 +11,35 @@ import {
   StyleSheet,
   Platform,
 } from "react-native";
-import { GraduationCap, BookOpen, Plus, ChevronRight, X } from "lucide-react-native";
+import { GraduationCap, BookOpen, Plus, ChevronRight, X, Edit } from "lucide-react-native";
 import * as Yup from "yup";
 import { Header } from "../Components/Header";
 import { useHttpRequest } from "../ContextApi/ContextApi";
 import LinearGradient from "react-native-linear-gradient";
 import { BottomNavigation } from "./navigation/BottomNavigation";
+import { showToast } from "../Helper/Helper";
+import { PRICE_SYMBOL } from "@env";
 
 const Classes = ({ navigation }) => {
   const { httpRequest } = useHttpRequest();
   const [classes, setClasses] = useState([]);
   const [focusedField, setFocusedField] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
   const [loading, setLoading] = useState(false);
-  const [adding, setAdding] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [className, setClassName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [formValues, setFormValues] = useState({ className: "", fee: "" });
   const [errors, setErrors] = useState({});
+  const [refreshing, setRefreshing] = useState(false);
 
   // Yup validation schema
   const validationSchema = Yup.object({
     className: Yup.string().required("Class name is required"),
+    fee: Yup.number()
+      .typeError("Fee must be a number")
+      .required("Fee is required")
+      .positive("Fee must be a positive number"),
   });
 
   // Fetch classes from API
@@ -63,25 +71,28 @@ const Classes = ({ navigation }) => {
 
   // Handle form submission
   const handleSubmit = async () => {
-    setAdding(true);
+    setSubmitting(true);
     try {
-      // Validate form data
-      await validationSchema.validate({ className }, { abortEarly: false });
-      setErrors({}); // Clear errors if validation passes
+      await validationSchema.validate(formValues, { abortEarly: false });
+      setErrors({});
 
-      const response = await httpRequest("/class/store", {
-        method: "POST",
+      const endpoint = modalMode === "add" ? "/class/store" : `/class/edit/${selectedClass?.uuid}`;
+      const method = modalMode === "add" ? "POST" : "PUT";
+
+      const response = await httpRequest(endpoint, {
+        method,
         data: {
-          class_name: className,
+          class_name: formValues.className,
+          fee: Number(formValues.fee), // Changed from parseFloat() to Number()
         },
       });
 
       if (response.status === "success") {
+        showToast(response?.msg || `Class updated successfully`);
         fetchClasses();
-        setClassName(""); // Reset form
-        setShowAddForm(false);
+        closeModal();
       } else {
-        console.warn("Failed to add class:", response.msg);
+        console.warn(`Failed to ${modalMode === "add" ? "add" : "update"} class:`, response.msg);
       }
     } catch (error) {
       if (error.name === "ValidationError") {
@@ -91,19 +102,39 @@ const Classes = ({ navigation }) => {
         });
         setErrors(formattedErrors);
       } else {
-        console.error("Error adding class:", error);
+        console.error(`Error ${modalMode === "add" ? "adding" : "updating"} class:`, error);
       }
     }
-    setAdding(false);
+    setSubmitting(false);
   };
 
   const handleClassClick = (cls) => {
     navigation.navigate("Students", { className: cls.class_name });
   };
 
-  // Debug modal toggle
-  const toggleAddForm = () => {
-    setShowAddForm(true);
+  const openAddModal = () => {
+    setModalMode("add");
+    setFormValues({ className: "", fee: "" });
+    setErrors({});
+    setShowModal(true);
+  };
+
+  const openEditModal = (cls) => {
+    setModalMode("edit");
+    setSelectedClass(cls);
+    setFormValues({ 
+      className: cls.class_name, 
+      fee: cls.fee ? (Number(cls.fee) % 1 === 0 ? Number(cls.fee).toString() : cls.fee.toString()) : "" 
+    });
+    setErrors({});
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setFormValues({ className: "", fee: "" });
+    setErrors({});
+    setSelectedClass(null);
   };
 
   return (
@@ -113,32 +144,30 @@ const Classes = ({ navigation }) => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#4F46E5']} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#4F46E5"]} />
         }
       >
-        {/* Header */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
             <LinearGradient
-              colors={['#6366F1', '#9333EA']}   // Indigo → Purple
-              start={{ x: 0, y: 0 }}            // left
-              end={{ x: 1, y: 0 }}              // right
+              colors={["#6366F1", "#9333EA"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={styles.logoBox}
             >
               <GraduationCap color="white" size={22} />
             </LinearGradient>
             <Text style={styles.title}>Your Classes</Text>
           </View>
-          <TouchableOpacity activeOpacity={0.7} onPress={toggleAddForm} style={styles.addButton}>
+          <TouchableOpacity activeOpacity={0.7} onPress={openAddModal} style={styles.addButton}>
             <Plus size={16} color="#2563eb" />
             <Text style={styles.addButtonText}>Add Class</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Loader / Empty / List */}
         {loading ? (
           <View style={styles.skeletonContainer}>
-            {[1, 2, 3].map((n) => (
+            {[1, 2, 3, 4].map((n) => (
               <View key={n} style={styles.skeletonCard}>
                 <View style={styles.skeletonIcon} />
                 <View style={{ flex: 1 }}>
@@ -149,7 +178,7 @@ const Classes = ({ navigation }) => {
             ))}
           </View>
         ) : classes.length === 0 ? (
-          <TouchableOpacity activeOpacity={0.7} onPress={toggleAddForm} style={styles.emptyCard}>
+          <TouchableOpacity activeOpacity={0.7} onPress={openAddModal} style={styles.emptyCard}>
             <BookOpen size={40} color="#9ca3af" />
             <Text style={styles.emptyText}>No classes added yet</Text>
             <Text style={styles.emptySub}>
@@ -158,58 +187,69 @@ const Classes = ({ navigation }) => {
           </TouchableOpacity>
         ) : (
           classes.map((cls) => (
-            <TouchableOpacity
-              activeOpacity={0.7}
-              key={cls.id}
-              style={styles.classCard}
-              onPress={() => handleClassClick(cls)}
-            >
-              <View style={styles.classIcon}>
-                <BookOpen size={20} color="#2563eb" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.classTitle}>{cls.class_name}</Text>
-                <Text style={styles.studentCount}>{cls.students_count} students</Text>
-              </View>
-              <ChevronRight size={20} color="#9ca3af" />
-            </TouchableOpacity>
+            <View key={cls.id} style={styles.classCard}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+                onPress={() => handleClassClick(cls)}
+              >
+                <View style={styles.classIcon}>
+                  <BookOpen size={20} color="#2563eb" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.classTitle}>{cls.class_name}</Text>
+                  <View style={styles.classDetails}>
+                    {cls.fee && (
+                      <Text style={styles.feeText}>Fee: {PRICE_SYMBOL}{Number(cls.fee).toFixed(2)}</Text>
+                    )}
+                    <Text style={styles.studentCount}>{cls.students_count} students</Text>
+                  </View>
+                </View>
+                <ChevronRight size={20} color="#9ca3af" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => openEditModal(cls)}
+                style={styles.editButton}
+              >
+                <Edit size={18} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
           ))
         )}
       </ScrollView>
       <BottomNavigation />
-      {/* Add Class Modal */}
+
+      {/* Reusable Modal */}
       <Modal
-        visible={showAddForm}
+        visible={showModal}
         transparent
         animationType="fade"
-        onRequestClose={() => {
-          setShowAddForm(false);
-          setClassName("");
-          setErrors({});
-        }}
+        onRequestClose={closeModal}
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
               <View style={styles.modalIcon}>
-                <Plus size={20} color="white" />
+                {modalMode === "add" ? (
+                  <Plus size={20} color="white" />
+                ) : (
+                  <Edit size={20} color="white" />
+                )}
               </View>
-              <Text style={styles.modalTitle}>Add New Class</Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => {
-                  setShowAddForm(false);
-                  setClassName("");
-                  setErrors({});
-                }}
-              >
+              <Text style={styles.modalTitle}>
+                {modalMode === "add" ? "Add New Class" : "Edit Class"}
+              </Text>
+              <TouchableOpacity activeOpacity={0.7} onPress={closeModal}>
                 <X size={22} color="#6b7280" />
               </TouchableOpacity>
             </View>
 
             <TextInput
-              value={className}
-              onChangeText={setClassName}
+              value={formValues.className}
+              onChangeText={(text) =>
+                setFormValues({ ...formValues, className: text })
+              }
               onFocus={() => setFocusedField("className")}
               onBlur={() => setFocusedField("")}
               placeholder="Class Name"
@@ -222,34 +262,60 @@ const Classes = ({ navigation }) => {
                     : {},
               ]}
               accessibilityLabel="Class name input"
-              accessibilityHint="Enter the name of the new class"
+              accessibilityHint={
+                modalMode === "add"
+                  ? "Enter the name of the new class"
+                  : "Edit the name of the class"
+              }
             />
             {errors.className && (
               <Text style={styles.errorText}>{errors.className}</Text>
             )}
 
+            <TextInput
+              value={formValues.fee}
+              onChangeText={(text) => setFormValues({ ...formValues, fee: text })}
+              onFocus={() => setFocusedField("fee")}
+              onBlur={() => setFocusedField("")}
+              placeholder="Monthly Fee"
+              keyboardType="numeric"
+              style={[
+                styles.input,
+                errors.fee
+                  ? { borderColor: "red", shadowColor: "#ffffffff" }
+                  : focusedField === "fee"
+                    ? { borderColor: "#2563eb", shadowColor: "#ffffffff", shadowOpacity: 0.2 }
+                    : {},
+              ]}
+              accessibilityLabel="Monthly fee input"
+              accessibilityHint={
+                modalMode === "add"
+                  ? "Enter the monthly fee for the class"
+                  : "Edit the monthly fee for the class"
+              }
+            />
+            {errors.fee && <Text style={styles.errorText}>{errors.fee}</Text>}
+
             <View style={styles.modalActions}>
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => {
-                  setShowAddForm(false);
-                  setClassName("");
-                  setErrors({});
-                }}
+                onPress={closeModal}
                 style={styles.cancelBtn}
               >
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.7}
-                disabled={adding}
+                disabled={submitting}
                 onPress={handleSubmit}
-                style={[styles.addBtn, adding && { backgroundColor: "#d1d5db" }]}
+                style={[styles.addBtn, submitting && { backgroundColor: "#d1d5db" }]}
               >
-                {adding ? (
+                {submitting ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text style={styles.addBtnText}>Add Class</Text>
+                  <Text style={styles.addBtnText}>
+                    {modalMode === "add" ? "Add Class" : "Save Changes"}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -260,14 +326,18 @@ const Classes = ({ navigation }) => {
   );
 };
 
-export default Classes;
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9fafb" },
-  scrollContent: { padding: 16, },
+  scrollContent: { padding: 16 },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   headerLeft: { flexDirection: "row", alignItems: "center" },
-  iconWrap: { width: 40, height: 40, borderRadius: 12, backgroundColor: "#4f46e5", alignItems: "center", justifyContent: "center", marginRight: 8 },
+  logoBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   title: { fontSize: 18, fontWeight: "600", color: "#111827", marginLeft: 8 },
   addButton: { flexDirection: "row", alignItems: "center" },
   addButtonText: { marginLeft: 4, color: "#2563eb", fontWeight: "500" },
@@ -281,10 +351,13 @@ const styles = StyleSheet.create({
   classCard: { flexDirection: "row", alignItems: "center", padding: 16, backgroundColor: "white", borderRadius: 12, marginBottom: 12, elevation: 1 },
   classIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: "#e0f2fe", alignItems: "center", justifyContent: "center", marginRight: 12 },
   classTitle: { fontSize: 16, fontWeight: "600", color: "#111827" },
-  studentCount: { fontSize: 12, color: "#6b7280", marginTop: 2 },
+  classDetails: { flexDirection: "row", alignItems: "center", marginTop: 2 },
+  feeText: { fontSize: 12, color: "#2563eb", backgroundColor: "#e0f2fe", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginRight: 8 },
+  studentCount: { fontSize: 12, color: "#6b7280" },
+  editButton: { padding: 8 },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)", // Increased opacity for visibility
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
     padding: 16,
@@ -293,8 +366,8 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 16,
     padding: 20,
-    width: "90%", // Adjusted for better visibility on smaller screens
-    maxWidth: 400, // Added max width for consistency
+    width: "90%",
+    maxWidth: 400,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
@@ -335,12 +408,6 @@ const styles = StyleSheet.create({
   cancelText: { color: "#374151" },
   addBtn: { flex: 1, borderRadius: 10, padding: 12, alignItems: "center", backgroundColor: "#2563eb" },
   addBtnText: { color: "white", fontWeight: "600" },
-  logoBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: "#4f46e5",
-    justifyContent: "center",
-    alignItems: "center",
-  }
 });
+
+export default Classes;
