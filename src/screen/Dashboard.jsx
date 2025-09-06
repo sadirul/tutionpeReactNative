@@ -12,7 +12,6 @@ import { Users, CreditCard, Mail, ChevronRight } from 'lucide-react-native'
 import { Header } from '../Components/Header'
 import DashboardStatCard from '../component/DashboardStatCard'
 import LinearGradient from 'react-native-linear-gradient'
-import Loader from '../component/Loader'
 import { BottomNavigation } from './navigation/BottomNavigation'
 import { showToast } from '../Helper/Helper'
 import FeesGenerateModal from '../modal/FeesGenerateModal'
@@ -222,7 +221,6 @@ const Dashboard = () => {
             activeOpacity={0.7}
             onPress={() => handleCardClick('generateFees')}
             style={[styles.actionButton, { backgroundColor: '#D97706' }]}
-            disabled={generatingFees}
           >
             <View style={styles.row}>
               <CreditCard color="white" size={20} style={{ marginRight: 8 }} />

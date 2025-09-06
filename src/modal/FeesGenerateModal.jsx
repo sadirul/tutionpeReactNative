@@ -81,7 +81,7 @@ const FeesGenerateModal = ({ showFeeModal, setShowFeeModal, fetchDashboard }) =>
                     {/* Buttons */}
                     <View style={styles.buttonRow}>
                         <Pressable
-                            style={[styles.btn, styles.cancelBtn]}
+                            style={[styles.btn,]}
                             onPress={() => setShowFeeModal(false)}
                             disabled={generatingFees}
                         >
@@ -171,9 +171,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderRadius: 30,
         marginLeft: 10
-    },
-    cancelBtn: {
-        backgroundColor: '#f3f4f6'
     },
     cancelText: {
         color: '#2563eb',
