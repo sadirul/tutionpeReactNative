@@ -56,14 +56,9 @@ const EditStudentModal = ({
         return (classes || []).map((c) => ({
             uuid: c.uuid || c.id || '',
             label: c.class_name || c.title || '',
+            fee: Number(c.fee) || 0,
         }));
     }, [classes]);
-
-    const genderOptions = [
-        { label: 'Male', value: 'male' },
-        { label: 'Female', value: 'female' },
-        { label: 'Others', value: 'others' },
-    ];
 
     // Initialize formData with student values when modal opens
     useEffect(() => {
@@ -177,10 +172,26 @@ const EditStudentModal = ({
                             label="Select Class"
                             items={classOptions.map(c => ({ label: c.label, value: c.uuid }))}
                             value={formData.class} // stores uuid
-                            onChange={(val) => selectOption('class', val)} // val is uuid
+                            onChange={(val) => {
+                                // keep using selectOption for class
+                                selectOption('class', val)
+
+                                // update monthlyFees with handleInputChange
+                                const selectedClass = classOptions.find(c => c.uuid === val)
+                                console.log(selectedClass);
+
+                                if (selectedClass.fee === undefined) return;
+                                handleInputChange({
+                                    target: {
+                                        name: 'monthlyFees',
+                                        value: selectedClass ? selectedClass.fee : ''
+                                    },
+                                })
+                            }}
                             error={errors.class}
                             disabled={saving || classOptions.length === 0}
                         />
+
                     </View>
 
 
@@ -195,7 +206,7 @@ const EditStudentModal = ({
                             disabled={saving}
                         />
                     </View>
-                    
+
                     {/* Monthly Fees */}
                     <Text style={styles.label}>Monthly Fees <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput

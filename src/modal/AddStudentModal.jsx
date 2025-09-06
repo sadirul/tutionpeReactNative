@@ -15,7 +15,7 @@ import Modal from "react-native-modal"
 import { UserPlus, X } from "lucide-react-native"
 import { useHttpRequest } from "../ContextApi/ContextApi"
 import * as Yup from "yup"
-import { showToast, ucFirst } from '../Helper/Helper'
+import { showToast } from '../Helper/Helper'
 import ClassDropdown from "../component/ClassDropdown"
 import GenderDropdown from "../component/GenderDropdown"
 
@@ -25,7 +25,6 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
     const [classes, setClasses] = useState([])
     const { httpRequest } = useHttpRequest()
     const [loading, setLoading] = useState(false)
-    const [dropdownVisible, setDropdownVisible] = useState({ class: false, gender: false })
     const [form, setForm] = useState({
         name: "",
         class: "",
@@ -174,10 +173,18 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
                             label="Select Class"
                             items={classes.map(c => ({ label: c.class_name, value: c.uuid }))}
                             value={form.class}   // stores uuid
-                            onChange={(val) => setForm({ ...form, class: val })} // val is uuid
+                            onChange={(val) => {
+                                const selectedClass = classes.find((cls) => cls.uuid === val)
+                                setForm({
+                                    ...form,
+                                    class: val,
+                                    monthlyFees: selectedClass ? selectedClass.fee : form.monthlyFees,
+                                })
+                            }}
                             error={errors.class}
                             disabled={loading || classes.length === 0}
                         />
+
                     </View>
 
                     <Text style={styles.label}>Gender <Text style={styles.asteriskMark}>*</Text></Text>
