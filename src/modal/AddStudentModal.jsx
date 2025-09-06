@@ -9,6 +9,7 @@ import {
     FlatList,
     StyleSheet,
     Dimensions,
+    Switch,
 } from "react-native"
 import Modal from "react-native-modal"
 import { UserPlus, X } from "lucide-react-native"
@@ -37,12 +38,7 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
         guardianMobile: "",
     })
     const [errors, setErrors] = useState({})
-
-    const genderOptions = [
-        { label: "Male", value: "male" },
-        { label: "Female", value: "female" },
-        { label: "Other", value: "other" },
-    ]
+    const [sameAsMobile, setSameAsMobile] = useState(false)
 
     const validationSchema = Yup.object().shape({
         name: Yup.string().required("Student name is required"),
@@ -118,16 +114,25 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
         }
     }
 
-    const openDropdown = field => setDropdownVisible({ ...dropdownVisible, [field]: true })
-    const closeDropdown = field => setDropdownVisible({ ...dropdownVisible, [field]: false })
-    const selectOption = (field, value) => {
-        setForm({ ...form, [field]: value })
-        closeDropdown(field)
-    }
+    // const openDropdown = field => setDropdownVisible({ ...dropdownVisible, [field]: true })
+    // const closeDropdown = field => setDropdownVisible({ ...dropdownVisible, [field]: false })
+    // const selectOption = (field, value) => {
+    //     setForm({ ...form, [field]: value })
+    //     closeDropdown(field)
+    // }
 
-    const getClassLabel = uuid => {
-        const cls = classes.find(c => c.uuid === uuid)
-        return cls ? cls.class_name : "Select class"
+    // const getClassLabel = uuid => {
+    //     const cls = classes.find(c => c.uuid === uuid)
+    //     return cls ? cls.class_name : "Select class"
+    // }
+
+    const handleSameAsMobile = (val) => {
+        setSameAsMobile(val)
+        if (val) {
+            setForm({ ...form, guardianMobile: form.mobile })
+        } else {
+            setForm({ ...form, guardianMobile: '' })
+        }
     }
 
     return (
@@ -204,8 +209,16 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
                         keyboardType="number-pad"
                         maxLength={10}
                         value={form.mobile}
-                        onChangeText={val => setForm({ ...form, mobile: val.replace(/\D/g, "").slice(0, 10) })}
+                        onChangeText={val => {
+                            const cleanVal = val.replace(/\D/g, "").slice(0, 10)
+                            setForm({
+                                ...form,
+                                mobile: cleanVal,
+                                guardianMobile: sameAsMobile ? cleanVal : form.guardianMobile,
+                            })
+                        }}
                     />
+
                     {errors.mobile && <Text style={styles.error}>{errors.mobile}</Text>}
 
                     {/* Email */}
@@ -245,15 +258,26 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
                     {/* Guardian Mobile */}
                     <Text style={styles.label}>Guardian Mobile <Text style={styles.asteriskMark}>*</Text></Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input,]}
                         placeholder="Enter guardian mobile number"
                         keyboardType="number-pad"
                         maxLength={10}
                         value={form.guardianMobile}
                         onChangeText={val => setForm({ ...form, guardianMobile: val.replace(/\D/g, "").slice(0, 10) })}
-                        editable={!loading}
+                        editable={!sameAsMobile}
                     />
                     {errors.guardianMobile && <Text style={styles.error}>{errors.guardianMobile}</Text>}
+                    <View style={styles.switchRow}>
+                        <Switch
+                            value={sameAsMobile}
+                            onValueChange={val => handleSameAsMobile(val)}
+                            trackColor={{ false: '#ccc', true: '#4f46e5' }}
+                            thumbColor={sameAsMobile ? '#fff' : '#fff'}
+                        />
+                        <Text style={styles.switchLabel}>
+                            Include current month's admission students
+                        </Text>
+                    </View>
                 </ScrollView>
 
                 <View style={styles.footer}>
@@ -300,5 +324,15 @@ const styles = StyleSheet.create({
     dropdownCloseBtn: { padding: 4, borderRadius: 6, backgroundColor: "#e9ecef" },
     dropdownItem: { padding: 15, borderBottomWidth: 1, borderBottomColor: "#f1f3f4" },
     dropdownItemText: { fontSize: 15, color: "#333" },
-    asteriskMark: { color: 'red' }
+    asteriskMark: { color: 'red' },
+    switchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+        marginHorizontal: 12,
+    },
+    switchLabel: {
+        fontSize: 14,
+        color: '#444'
+    }
 })
