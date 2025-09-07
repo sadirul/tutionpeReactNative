@@ -1,29 +1,29 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Linking, ScrollView,
-  RefreshControl,
-  BackHandler
-} from 'react-native'
-import { useFocusEffect, useNavigation } from '@react-navigation/native'
-import { useSelector } from 'react-redux'
-import { useHttpRequest } from '../ContextApi/ContextApi'
+  RefreshControl, BackHandler
+} from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useHttpRequest } from '../ContextApi/ContextApi';
+import { Users, CreditCard, Mail, ChevronRight, ChevronLeft } from 'lucide-react-native';
+import { Header } from '../Components/Header';
+import DashboardStatCard from '../component/DashboardStatCard';
+import LinearGradient from 'react-native-linear-gradient';
+import { BottomNavigation } from './navigation/BottomNavigation';
+import { showToast } from '../Helper/Helper';
+import FeesGenerateModal from '../modal/FeesGenerateModal';
+import { PRICE_SYMBOL } from '@env';
 
-import { Users, CreditCard, Mail, ChevronRight } from 'lucide-react-native'
-import { Header } from '../Components/Header'
-import DashboardStatCard from '../component/DashboardStatCard'
-import LinearGradient from 'react-native-linear-gradient'
-import { BottomNavigation } from './navigation/BottomNavigation'
-import { showToast } from '../Helper/Helper'
-import FeesGenerateModal from '../modal/FeesGenerateModal'
-import { PRICE_SYMBOL } from '@env'
 const Dashboard = () => {
-  const navigation = useNavigation()
-  const { httpRequest } = useHttpRequest()
-  const user = useSelector((state) => state.auth.user)
+  const navigation = useNavigation();
+  const { httpRequest } = useHttpRequest();
+  const user = useSelector((state) => state.auth.user);
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [monthlyFeeLoading, setMonthlyFeeLoading] = useState(false);
   const [showFeeModal, setShowFeeModal] = useState(false);
-  const [refreshing, setRefreshing] = useState(false)   // <-- for pull to refresh
+  const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState({
     totalActiveStudents: 0,
     totalInactiveStudents: 0,
@@ -31,69 +31,75 @@ const Dashboard = () => {
     totalClasses: 0,
     fees_due_this_month: 0,
     fees_paid_this_month: 0,
-  })
+  });
+  // Initialize currentDate to the first day of the previous month
+  const [currentDate, setCurrentDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  });
 
   // ✅ back press logic
-  const [backPressedOnce, setBackPressedOnce] = useState(false)
+  const [backPressedOnce, setBackPressedOnce] = useState(false);
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
         if (backPressedOnce) {
-          BackHandler.exitApp()
-          return true
+          BackHandler.exitApp();
+          return true;
         }
 
-        setBackPressedOnce(true)
-        showToast('Press back again to exit')
+        setBackPressedOnce(true);
+        showToast('Press back again to exit');
 
         setTimeout(() => {
-          setBackPressedOnce(false)
-        }, 1500)
+          setBackPressedOnce(false);
+        }, 1500);
 
-        return true
-      }
+        return true;
+      };
 
       const subscription = BackHandler.addEventListener(
         'hardwareBackPress',
         onBackPress
-      )
+      );
 
-      return () => subscription.remove()
+      return () => subscription.remove();
     }, [backPressedOnce])
-  )
+  );
 
+  // 📌 get displayed month dynamically
+  const getDisplayMonth = () => {
+    return currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+  };
 
-  // 📌 get previous month dynamically
-  const getPreviousMonth = () => {
-    const now = new Date()
-    now.setMonth(now.getMonth() - 1)
-    return now.toLocaleString('default', { month: 'long', year: 'numeric' })
-  }
+  // 📌 check if the previous month is being displayed
+  const isCurrentMonth = () => {
+    const now = new Date();
+    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return currentDate.getMonth() === previousMonth.getMonth() &&
+      currentDate.getFullYear() === previousMonth.getFullYear();
+  };
 
   const handleCardClick = async (path) => {
     if (path === 'generateFees') {
       setShowFeeModal(true);
     } else if (path === 'Students') {
-      // Active students
-      navigation.navigate('Students', { status: 'active' })
+      navigation.navigate('Students', { status: 'active' });
     } else if (path === 'InactiveStudents') {
-      // Inactive students
-      navigation.navigate('Students', { status: 'inactive' })
+      navigation.navigate('Students', { status: 'inactive' });
     } else if (path === 'feeStatus') {
-      // Inactive students
-      navigation.navigate('Students', { feeStatus: 'due' })
+      navigation.navigate('Students', { feeStatus: 'due' });
     } else {
-      navigation.navigate(path)
+      navigation.navigate(path);
     }
-  }
-
+  };
 
   const fetchDashboard = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await httpRequest('/dashboard')
+      const response = await httpRequest('/dashboard');
       if (response?.status === 'success') {
-        const d = response.data || {}
+        const d = response.data || {};
         setStats({
           totalActiveStudents: d.total_active_students ?? 0,
           totalInactiveStudents: d.total_inactive_students ?? 0,
@@ -101,26 +107,59 @@ const Dashboard = () => {
           feesDue: d.total_fees_due ?? 0,
           fees_due_this_month: d.fees_due_this_month ?? 0,
           fees_paid_this_month: d.fees_paid_this_month ?? 0,
-        })
+        });
       } else {
-        showToast(response?.msg || 'Failed to fetch dashboard')
+        showToast(response?.msg || 'Failed to fetch dashboard');
       }
     } catch (err) {
-      console.error(err)
-      showToast('Something went wrong while fetching dashboard')
+      console.error(err);
+      showToast('Something went wrong while fetching dashboard');
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
+
+  const fetchMonthlyFeeAmount = async (year, month) => {
+    setMonthlyFeeLoading(true);
+    try {
+      const response = await httpRequest(`/dashboard/monthly-collection?year=${year}&month=${month + 1}`);
+      if (response?.status === 'success') {
+        setStats(prev => ({
+          ...prev,
+          fees_due_this_month: response.data.fees_due_this_month ?? 0,
+          fees_paid_this_month: response.data.fees_paid_this_month ?? 0,
+        }));
+      } else {
+        showToast(response?.msg || 'Failed to fetch monthly fee data');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Something went wrong while fetching monthly fee data');
+    }
+    setMonthlyFeeLoading(false);
+  };
+
+  const handlePreviousMonth = () => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(currentDate.getMonth() - 1);
+    setCurrentDate(newDate);
+    fetchMonthlyFeeAmount(newDate.getFullYear(), newDate.getMonth());
+  };
+
+  const handleNextMonth = () => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(currentDate.getMonth() + 1);
+    setCurrentDate(newDate);
+    fetchMonthlyFeeAmount(newDate.getFullYear(), newDate.getMonth());
+  };
 
   const onRefresh = async () => {
-    setRefreshing(true)
-    await fetchDashboard()
-    setRefreshing(false)
-  }
+    setRefreshing(true);
+    await fetchDashboard();
+  };
 
   useEffect(() => {
-    fetchDashboard()
-  }, [])
+    fetchDashboard();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -134,9 +173,9 @@ const Dashboard = () => {
       >
         {/* Banner */}
         <LinearGradient
-          colors={['#6366F1', '#9333EA']} // Indigo → Purple
-          start={{ x: 0, y: 0 }}   // left
-          end={{ x: 1, y: 0 }}     // right
+          colors={['#6366F1', '#9333EA']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
           style={styles.banner}
         >
           <Text style={styles.bannerTitle}>Welcome back!</Text>
@@ -191,10 +230,28 @@ const Dashboard = () => {
             onPress={() => handleCardClick('Classes')}
           />
 
+          <View style={styles.navigationContainer}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.navButton}
+              onPress={handlePreviousMonth}
+            >
+              <ChevronLeft color="#374151" size={16} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={[styles.navButton, isCurrentMonth() && styles.disabledButton]}
+              onPress={isCurrentMonth() ? undefined : handleNextMonth}
+              disabled={isCurrentMonth()}
+            >
+              <ChevronRight color="#374151" size={16} />
+            </TouchableOpacity>
+          </View>
+
           <DashboardStatCard
-            title={`Due Amount (${getPreviousMonth()})`}
+            title={`Due Amount (${getDisplayMonth()})`}
             value={`${PRICE_SYMBOL}${stats.fees_due_this_month}`}
-            loading={loading}
+            loading={loading || monthlyFeeLoading}
             iconName='trending-down'
             iconColor='#eb252e'
             iconBg='#ffe2e2'
@@ -203,12 +260,12 @@ const Dashboard = () => {
           />
 
           <DashboardStatCard
-            title={`Paid Amount (${getPreviousMonth()})`}
+            title={`Paid Amount (${getDisplayMonth()})`}
             value={`${PRICE_SYMBOL}${stats.fees_paid_this_month}`}
-            loading={loading}
+            loading={loading || monthlyFeeLoading}
+            iconName='trending-up'
             iconColor='#009966'
             iconBg='#d0fae5'
-            iconName='trending-up'
             subtitle="Collected"
             subtitleColor="green"
           />
@@ -245,6 +302,7 @@ const Dashboard = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
       <FeesGenerateModal
         showFeeModal={showFeeModal}
         setShowFeeModal={setShowFeeModal}
@@ -252,11 +310,10 @@ const Dashboard = () => {
       />
       <BottomNavigation />
     </View>
-  )
-}
+  );
+};
 
-export default Dashboard
-
+export default Dashboard;
 
 // ----------------- Styles -----------------
 const styles = StyleSheet.create({
@@ -267,10 +324,8 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    // paddingBottom: 100,
   },
   banner: {
-    backgroundColor: '#6366F1',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -308,7 +363,21 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
   },
-
-})
+  navigationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 8,
+    marginBottom: 8,
+  },
+  navButton: {
+    backgroundColor: '#D1FAE5',
+    borderRadius: 20,
+    padding: 4,
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+});
