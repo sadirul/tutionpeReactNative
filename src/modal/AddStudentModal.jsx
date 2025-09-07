@@ -113,18 +113,6 @@ const AddStudentModal = ({ isOpen, closeModal }) => {
         }
     }
 
-    // const openDropdown = field => setDropdownVisible({ ...dropdownVisible, [field]: true })
-    // const closeDropdown = field => setDropdownVisible({ ...dropdownVisible, [field]: false })
-    // const selectOption = (field, value) => {
-    //     setForm({ ...form, [field]: value })
-    //     closeDropdown(field)
-    // }
-
-    // const getClassLabel = uuid => {
-    //     const cls = classes.find(c => c.uuid === uuid)
-    //     return cls ? cls.class_name : "Select class"
-    // }
-
     const handleSameAsMobile = (val) => {
         setSameAsMobile(val)
         if (val) {
@@ -335,7 +323,7 @@ const styles = StyleSheet.create({
     switchRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        marginTop: 6,
         marginHorizontal: 12,
     },
     switchLabel: {

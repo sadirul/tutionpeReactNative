@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 20,
-        minHeight: Dimensions.get("window").height * 0.6,
+        // minHeight: Dimensions.get("window").height * 0.6,
     },
     closeBtn: {
         position: "absolute",
@@ -217,7 +217,6 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: "600",
-        marginBottom: 6,
         color: "#333",
     },
     error: {

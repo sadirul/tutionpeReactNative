@@ -15,7 +15,7 @@ import LinearGradient from 'react-native-linear-gradient'
 import { BottomNavigation } from './navigation/BottomNavigation'
 import { showToast } from '../Helper/Helper'
 import FeesGenerateModal from '../modal/FeesGenerateModal'
-
+import { PRICE_SYMBOL } from '@env'
 const Dashboard = () => {
   const navigation = useNavigation()
   const { httpRequest } = useHttpRequest()
@@ -23,7 +23,6 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(false)
   const [showFeeModal, setShowFeeModal] = useState(false);
-  const [generatingFees, setGeneratingFees] = useState(false)
   const [refreshing, setRefreshing] = useState(false)   // <-- for pull to refresh
   const [stats, setStats] = useState({
     totalActiveStudents: 0,
@@ -194,7 +193,7 @@ const Dashboard = () => {
 
           <DashboardStatCard
             title={`Due Amount (${getPreviousMonth()})`}
-            value={stats.fees_due_this_month}
+            value={`${PRICE_SYMBOL}${stats.fees_due_this_month}`}
             loading={loading}
             iconName='trending-down'
             iconColor='#eb252e'
@@ -205,7 +204,7 @@ const Dashboard = () => {
 
           <DashboardStatCard
             title={`Paid Amount (${getPreviousMonth()})`}
-            value={stats.fees_paid_this_month}
+            value={`${PRICE_SYMBOL}${stats.fees_paid_this_month}`}
             loading={loading}
             iconColor='#009966'
             iconBg='#d0fae5'

@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     switchRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20
+        // marginBottom: 20
     },
     switchLabel: {
         fontSize: 14,

@@ -140,7 +140,7 @@ const Profile = () => {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>School/Coaching</Text>
-              <Text style={styles.value}>{tuitionInfo?.tuition_name}</Text>
+              <Text style={styles.value}>{user?.tuition_name}</Text>
             </View>
           </View>
         </View>
@@ -227,19 +227,19 @@ const Profile = () => {
               <View style={styles.modalIconContainer}>
                 <AlertTriangle size={24} color="#dc2626" />
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setModalVisible(false)}
               >
                 <X size={20} color="#6b7280" />
               </TouchableOpacity>
             </View>
-            
+
             <Text style={styles.modalTitle}>Delete Account</Text>
             <Text style={styles.modalSubtitle}>
               This action cannot be undone. All your data will be permanently deleted.
             </Text>
-            
+
             <View style={styles.warningBox}>
               <View style={styles.warningIcon}>
                 <AlertTriangle size={16} color="#b91c1c" />
@@ -248,7 +248,7 @@ const Profile = () => {
                 You'll need to enter your password to confirm this action
               </Text>
             </View>
-            
+
             <Text style={styles.inputLabel}>Password</Text>
             <TextInput
               placeholder="Enter your password"
@@ -258,7 +258,7 @@ const Profile = () => {
               secureTextEntry
               style={styles.input}
             />
-            
+
             <View style={styles.modalActions}>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   actionRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
   divider: { height: 1, backgroundColor: '#e5e7eb', marginVertical: 8 },
   appInfo: { fontSize: 12, color: '#6b7280' },
-   modalOverlay: {
+  modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
@@ -453,5 +453,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '500',
   },
-  
+
 })

@@ -106,7 +106,6 @@ const EditStudentModal = ({
         setSaving(true);
         try {
             await handleEditStudent();
-            showToast('Student updated successfully');
             closeModal();
         } catch (err) {
             showToast('Something went wrong');

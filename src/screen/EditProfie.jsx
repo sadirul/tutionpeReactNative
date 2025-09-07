@@ -67,6 +67,7 @@ const EditProfile = () => {
           address,
         },
       })
+console.log(response.data);
 
       if (response.status === 'success') {
         dispatch(login({ user: response.data }))

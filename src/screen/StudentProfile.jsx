@@ -446,7 +446,7 @@ const StudentProfile = ({ route }) => {
                 };
                 setStudentData(mappedData);
                 setIsEditModalOpen(false);
-                showToast('Student information updated successfully', 'success');
+                showToast(response?.msg || 'Student information updated successfully');
             } else {
                 const errorMsg = response?.msg || 'Failed to update student information';
                 showToast(errorMsg, 'error');

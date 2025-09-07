@@ -37,7 +37,7 @@ const GenderDropdown = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           borderWidth: 1,
-          borderColor: error ? '#dc2626' : '#d1d5db',
+          borderColor: '#d1d5db',
           borderRadius: 8,
           paddingVertical: 10,
           paddingHorizontal: 12,

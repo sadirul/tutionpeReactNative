@@ -14,7 +14,8 @@ import {
   Platform,
   Dimensions,
   RefreshControl,
-  BackHandler
+  BackHandler,
+  Switch
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -76,6 +77,7 @@ const Students = () => {
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [visible, setVisible] = useState(false)
+  const [updateFees, setUpdateFees] = useState(false);
 
 
   // Handle hardware back button press
@@ -268,11 +270,12 @@ const Students = () => {
       if (!classUUID || selectedStudents.length === 0) return;
       try {
         setConfirming(true);
-        const response = await httpRequest('/student/change/class', {
+        const response = await httpRequest(`/student/change/class?updateFees=${updateFees}`, {
           method: 'PUT',
           data: { student_ids: selectedStudents, class: classUUID },
         });
         if (response?.status === 'success') {
+          setUpdateFees(false);
           const selectedSet = new Set(selectedStudents);
           const nextStudents = students.map((s) => {
             const sid = s?.student_info?.uuid ?? s?.uuid ?? s?.id;
@@ -438,7 +441,7 @@ const Students = () => {
                 unpaid > 0 ? styles.dueBadge : styles.paidBadge,
               ]}
             >
-              <Text style={styles.statusText}>
+              <Text style={[styles.statusText, unpaid > 0 ? styles.dueStatusText : styles.paidStatusText]}>
                 {unpaid > 0 ? `${unpaid} month${unpaid > 1 ? 's' : ''} due` : 'No dues'}
               </Text>
             </View>
@@ -449,7 +452,7 @@ const Students = () => {
                 active ? styles.activeBadge : styles.inactiveBadge,
               ]}
             >
-              <Text style={styles.statusText}>{active ? 'Active' : 'Inactive'}</Text>
+              <Text style={[styles.statusText, styles.paidStatusText]}>{active ? 'Active' : 'Inactive'}</Text>
             </View>
           </View>
         </View>
@@ -466,7 +469,12 @@ const Students = () => {
       <Header title="Students" />
 
       {/* Header */}
-      <View style={styles.header}>
+      <LinearGradient
+        colors={['#6366F1', '#9333EA']} // Indigo → Purple
+        start={{ x: 0, y: 0 }}   // left
+        end={{ x: 1, y: 0 }}     // right
+        style={styles.header}
+      >
         {selectionMode ? (
           <View style={styles.selectionHeader}>
             <View style={styles.selectionTitle}>
@@ -503,8 +511,7 @@ const Students = () => {
             placeholderTextColor="#9ca3af"
           />
         </View>
-      </View>
-
+      </LinearGradient>
       {/* Filter Chips */}
       {
         AnyFiltersActive && (
@@ -806,9 +813,18 @@ const Students = () => {
               </LinearGradient>
             </TouchableOpacity>
           )}
-          <TouchableOpacity activeOpacity={0.7} onPress={() => setIsModalOpen(true)} style={styles.fab}>
-            <Icon name="account-plus" size={24} color="#fff" />
-          </TouchableOpacity>
+          <LinearGradient
+            colors={['#6366F1', '#9333EA']} // Indigo → Purple
+            start={{ x: 0, y: 0 }}   // left
+            end={{ x: 1, y: 0 }}     // right
+            style={styles.fab}
+          >
+            <TouchableOpacity activeOpacity={0.7} onPress={() => setIsModalOpen(true)} >
+              <Icon name="account-plus" size={24} color="#fff" />
+            </TouchableOpacity>
+          </LinearGradient>
+
+
         </View>
       )}
 
@@ -869,6 +885,17 @@ const Students = () => {
                 </>
               ) : null}
             </Text>
+            <View style={styles.switchRow}>
+              <Switch
+                value={updateFees}
+                onValueChange={val => setUpdateFees(val)}
+                trackColor={{ false: '#ccc', true: '#4f46e5' }}
+                thumbColor={updateFees ? '#fff' : '#fff'}
+              />
+              <Text style={styles.switchLabel}>
+                Also update Monthly Fee as per <Text style={[styles.modalBold, { color: '#2563eb' }]}>{pendingClass?.class_name}</Text>
+              </Text>
+            </View>
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -992,7 +1019,9 @@ const styles = StyleSheet.create({
   paidBadge: { backgroundColor: '#ecfdf5' },
   activeBadge: { backgroundColor: '#ecfdf5' },
   inactiveBadge: { backgroundColor: '#fce7f3' },
-  statusText: { fontSize: 12, fontWeight: '500', color: '#1f2937' },
+  statusText: { fontSize: 12, fontWeight: 'bold', color: '#1f2937' },
+  paidStatusText: { color: '#007a55' },
+  dueStatusText: { color: '#ce0005' },
 
   emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16 },
   emptyIcon: { width: 96, height: 96, borderRadius: 9999, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
@@ -1031,6 +1060,16 @@ const styles = StyleSheet.create({
   avatarSkeleton: { width: 40, height: 40, borderRadius: 9999, backgroundColor: '#e5e7eb' },
   skeletonContent: { flex: 1 },
   skeletonLine: { height: 16, backgroundColor: '#e5e7eb', borderRadius: 4, marginBottom: 8, width: '33%' },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    // marginHorizontal: 12,
+  },
+  switchLabel: {
+    fontSize: 14,
+    color: '#444'
+  }
 });
 
 export default Students;
