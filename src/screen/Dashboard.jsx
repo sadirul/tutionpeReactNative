@@ -155,6 +155,7 @@ const Dashboard = () => {
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchDashboard();
+    setRefreshing(false);
   };
 
   useEffect(() => {
