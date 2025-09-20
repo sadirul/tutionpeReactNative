@@ -10,6 +10,7 @@ import {
   RefreshControl,
   StyleSheet,
   Platform,
+  Switch,
 } from "react-native";
 import { GraduationCap, BookOpen, Plus, ChevronRight, X, Edit } from "lucide-react-native";
 import * as Yup from "yup";
@@ -32,6 +33,7 @@ const Classes = ({ navigation }) => {
   const [formValues, setFormValues] = useState({ className: "", fee: "" });
   const [errors, setErrors] = useState({});
   const [refreshing, setRefreshing] = useState(false);
+  const [updateAllStudentFee, setUpdateAllStudentFee] = useState(false)
 
   // Yup validation schema
   const validationSchema = Yup.object({
@@ -83,7 +85,8 @@ const Classes = ({ navigation }) => {
         method,
         data: {
           class_name: formValues.className,
-          fee: Number(formValues.fee), // Changed from parseFloat() to Number()
+          fee: Number(formValues.fee),
+          updateAllStudentFee: updateAllStudentFee
         },
       });
 
@@ -91,6 +94,7 @@ const Classes = ({ navigation }) => {
         showToast(response?.msg || `Class updated successfully`);
         fetchClasses();
         closeModal();
+        setUpdateAllStudentFee(false);
       } else {
         console.warn(`Failed to ${modalMode === "add" ? "add" : "update"} class:`, response.msg);
       }
@@ -122,9 +126,9 @@ const Classes = ({ navigation }) => {
   const openEditModal = (cls) => {
     setModalMode("edit");
     setSelectedClass(cls);
-    setFormValues({ 
-      className: cls.class_name, 
-      fee: cls.fee ? (Number(cls.fee) % 1 === 0 ? Number(cls.fee).toString() : cls.fee.toString()) : "" 
+    setFormValues({
+      className: cls.class_name,
+      fee: cls.fee ? (Number(cls.fee) % 1 === 0 ? Number(cls.fee).toString() : cls.fee.toString()) : ""
     });
     setErrors({});
     setShowModal(true);
@@ -295,7 +299,21 @@ const Classes = ({ navigation }) => {
               }
             />
             {errors.fee && <Text style={styles.errorText}>{errors.fee}</Text>}
-
+            {
+              modalMode !== "add" && (
+                <View style={styles.switchRow}>
+                  <Switch
+                    value={updateAllStudentFee}
+                    onValueChange={val => setUpdateAllStudentFee(val)}
+                    trackColor={{ false: '#ccc', true: '#4f46e5' }}
+                    thumbColor={updateAllStudentFee ? '#fff' : '#fff'}
+                  />
+                  <Text style={styles.switchLabel}>
+                    All <Text style={[styles.modalBold, { color: '#2563eb' }]}>{formValues?.className}</Text> fee set to <Text style={[styles.modalBold, { color: '#2563eb' }]}>{formValues?.fee}</Text>
+                  </Text>
+                </View>
+              )
+            }
             <View style={styles.modalActions}>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -308,7 +326,7 @@ const Classes = ({ navigation }) => {
                 activeOpacity={0.7}
                 disabled={submitting}
                 onPress={handleSubmit}
-                style={[styles.addBtn, submitting && { backgroundColor: "#d1d5db" }]}
+                style={[styles.addBtn, {backgroundColor: modalMode === "add" ? "#d1d5db" : "#00a63e" }, submitting && { backgroundColor: "#d1d5db" }]}
               >
                 {submitting ? (
                   <ActivityIndicator color="white" />
@@ -408,6 +426,16 @@ const styles = StyleSheet.create({
   cancelText: { color: "#374151" },
   addBtn: { flex: 1, borderRadius: 10, padding: 12, alignItems: "center", backgroundColor: "#2563eb" },
   addBtnText: { color: "white", fontWeight: "600" },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    // marginHorizontal: 12,
+  },
+  switchLabel: {
+    fontSize: 14,
+    color: '#444'
+  }
 });
 
 export default Classes;

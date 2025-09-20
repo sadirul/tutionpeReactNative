@@ -885,17 +885,22 @@ const Students = () => {
                 </>
               ) : null}
             </Text>
-            <View style={styles.switchRow}>
-              <Switch
-                value={updateFees}
-                onValueChange={val => setUpdateFees(val)}
-                trackColor={{ false: '#ccc', true: '#4f46e5' }}
-                thumbColor={updateFees ? '#fff' : '#fff'}
-              />
-              <Text style={styles.switchLabel}>
-                Also update Monthly Fee as per <Text style={[styles.modalBold, { color: '#2563eb' }]}>{pendingClass?.class_name}</Text>
-              </Text>
-            </View>
+            {
+              pendingClass && (
+                <View style={styles.switchRow}>
+                  <Switch
+                    value={updateFees}
+                    onValueChange={val => setUpdateFees(val)}
+                    trackColor={{ false: '#ccc', true: '#4f46e5' }}
+                    thumbColor={updateFees ? '#fff' : '#fff'}
+                  />
+                  <Text style={styles.switchLabel}>
+                    Also update Monthly Fee as per <Text style={[styles.modalBold, { color: '#2563eb' }]}>{pendingClass?.class_name}</Text>
+                  </Text>
+                </View>
+              )
+            }
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 activeOpacity={0.7}
